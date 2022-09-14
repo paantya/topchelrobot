@@ -2,10 +2,10 @@ import telebot
 from utils import load, save, get_name
 
 from random import choice
-
+from config import bot_token
 import time
 
-bot_token = "5718825658:AAGOLg52TnO5t48TJUNoeqTIkB-KqhOEVqE"
+
 bot = telebot.TeleBot(bot_token)
 # migrate_from_chat_id
 # https://pytba.readthedocs.io/en/latest/index.html
@@ -20,9 +20,6 @@ bot = telebot.TeleBot(bot_token)
 
 
 # from pyrogram import Client
-
-# api_id = 9310677
-# api_hash = "c6ae3ab79d42a193ee5e2301d55f04ff"
 
 
 # app = Client(
