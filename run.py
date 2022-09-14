@@ -57,6 +57,7 @@ def send_help(message):
 /join --  принять участие в игре
 /detach --  перестать участвовать в игре
 /party (/list)-- список участников
+/departy (/delist)-- список бывших участников
 /rating (/ratingall) -- рейтинг "топ 10" (для всех)
 /month (/monthall) -- рейтинг за месяц
 /quarter (/quarterall) -- рейтинг за 3 месяца
@@ -188,6 +189,23 @@ def send_party_g(message):
 	text = 'Список участников:'
 	for i, key in enumerate(info['join'].keys()):
 		name = get_name(info['join'][key])
+		text += f'\n{i+1}. {name}'
+	bot.reply_to(message, text, parse_mode='markdown')
+
+@bot.message_handler(commands=['departy', 'delist'], chat_types=['group', 'supergroup'])
+def send_departy_g(message):
+	message_json = message.json
+	type = message_json['chat']['type']
+	file = f"./data/{type}{message_json['chat']['id']}/info.json"
+	info = load(file=file)
+	if 'join' not in info.keys():
+		info['join'] = {}
+	if 'detach' not in info.keys():
+		info['detach'] = {}
+
+	text = 'Список бывших участников:'
+	for i, key in enumerate(info['detach'].keys()):
+		name = get_name(info['detach'][key])
 		text += f'\n{i+1}. {name}'
 	bot.reply_to(message, text, parse_mode='markdown')
 
