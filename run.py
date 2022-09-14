@@ -203,11 +203,14 @@ def send_departy_g(message):
 	if 'detach' not in info.keys():
 		info['detach'] = {}
 
-	text = 'Список бывших участников:'
-	for i, key in enumerate(info['detach'].keys()):
-		name = get_name(info['detach'][key])
-		text += f'\n{i+1}. {name}'
-	bot.reply_to(message, text, parse_mode='markdown')
+	if len(info['detach'].keys()) < 1:
+		bot.reply_to(message, "Список бывших участников пуст.", parse_mode='markdown')
+	else:
+		text = 'Список бывших участников:'
+		for i, key in enumerate(info['detach'].keys()):
+			name = get_name(info['detach'][key])
+			text += f'\n{i+1}. {name}'
+		bot.reply_to(message, text, parse_mode='markdown')
 
 
 @bot.message_handler(
