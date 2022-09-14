@@ -246,8 +246,7 @@ def send_rating_g(message):
 			info['join'] = {}
 		if 'detach' not in info.keys():
 			info['detach'] = {}
-
-		if message_json['left_chat_participant']['id'] in info['join'].keys():
+		if str(message_json['left_chat_participant']['id']) in list(info['join'].keys()):
 			detach = info['join'].pop(str(message_json['left_chat_participant']['id']), None)
 			if detach is not None:
 				info['detach'][str(message_json['from']['id'])] = detach
