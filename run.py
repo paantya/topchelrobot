@@ -146,10 +146,12 @@ def send_join_g(message):
 	else:
 		info['join'][message_json['from']['id']] = message_json['from']
 		info['join'][message_json['from']['id']]['join_ts'] = time.time()
-		info['detach'].pop(str(message_json['from']['id']), None)
+		detach = info['detach'].pop(str(message_json['from']['id']), None)
 		save(data=info, file=file)
-		bot.reply_to(message, f"Поздравляем, теперь вы участвуете в игре!\nДля выхода из игры используйте /detach.")
-
+		if detach is not None:
+			bot.reply_to(message, f"Поздравляем с возвращением в игру!\nДля выхода из игры используйте /detach.")
+		else:
+			bot.reply_to(message, f"Поздравляем, теперь вы участвуете в игре!\nДля выхода из игры используйте /detach.")
 
 
 @bot.message_handler(commands=['detach'],chat_types=['group', 'supergroup'])
