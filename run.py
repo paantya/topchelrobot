@@ -1,43 +1,13 @@
 import telebot
-from utils import load, save, get_name
-
+import time, datetime
 from random import choice
-from config import bot_token
-import time
 
-DISABLE_NOTIFICATION = True
+
+from config import bot_token
+from const import DISABLE_NOTIFICATION, TIME_SHIFT
+from utils import load, save, get_name, get_top_list, get_top_statistics
 
 bot = telebot.TeleBot(bot_token)
-
-
-# migrate_from_chat_id
-# https://pytba.readthedocs.io/en/latest/index.html
-# https://pytba.readthedocs.io/en/latest/sync_version/index.html?highlight=get_chat_member#telebot.TeleBot.get_chat_member
-# @bot.message_handler(content_types=['new_chat_members'])
-# Client.get_chat_members()
-# from pyrogram import enums
-#
-# # Get members
-# async for member in app.get_chat_members(chat_id):
-#     print(member)
-
-
-# from pyrogram import Client
-
-
-# app = Client(
-# 	"my_bot",
-# 	api_id=api_id, api_hash=api_hash,
-# 	bot_token=bot_token,
-#
-# )
-#
-# app.start()
-# for member in app.get_chat_members(message_json['chat']['id']):
-# # print(member)
-# 	bot.reply_to(message, f"Ты {member}")
-# app.stop()
-# app.
 
 
 @bot.message_handler(commands=['stpip3 install -U uvloopart'])
@@ -61,10 +31,12 @@ def send_help(message):
 /detach --  перестать участвовать в игре
 /party (/list)-- список участников
 /departy (/delist)-- список бывших участников
-/rating (/ratingall) -- рейтинг "топ 10" (для всех)
+/rating (/ratingall) -- рейтинг "топ 10" (all) за год
 /month (/monthall) -- рейтинг за месяц
 /quarter (/quarterall) -- рейтинг за 3 месяца
 /year (/yearall) -- рейтинг за год
+/time (/timeall) -- рейтинг за всё время игры
+/statistics (/statisticsall) -- статистика отличившегося за месяц
 /pidor - выбираем пидора
 """
     bot.reply_to(message, f"{text}",
@@ -79,6 +51,7 @@ def send_help(message):
         'month', 'monthall',
         'quarter', 'quarterall',
         'year', 'yearall',
+        'time', 'timeall',
         'party'
     ],
     chat_types=['private', 'channel'])
@@ -104,6 +77,65 @@ def send_rules(message):
                  parse_mode='markdown', disable_notification=DISABLE_NOTIFICATION)
 
 
+@bot.message_handler(commands=['topcheltest', 'pidortest'], chat_types=['group', 'supergroup'])
+def send_topchel_g(message):
+    message_json = message.json
+
+    type = message_json['chat']['type']
+    file = f"./data/{type}{message_json['chat']['id']}/info.json"
+    info = load(file=file)
+    join = list(info['join'].keys())
+
+    join_len = len(join)
+    if join_len < 1:
+        bot.reply_to(message,
+                     f"Мало участников в игре ({join_len}), позовите других участников чата вступить в игру нажав /join.",
+                     disable_notification=DISABLE_NOTIFICATION)
+    else:
+        if 'time_last_topchel' in info:
+            time_last_topchel = info['time_last_topchel']
+        else:
+            time_last_topchel = 0
+        time_last_topchel_dt = datetime.datetime.fromtimestamp(time_last_topchel)
+
+        get_time = time.time()
+        get_time_dt = datetime.datetime.fromtimestamp(get_time)
+        if (get_time_dt - time_last_topchel_dt) > TIME_SHIFT:
+            info['time_last_topchel'] = get_time
+            file_name = datetime.datetime.strptime(f'{get_time_dt.year}-{get_time_dt.month}', '%Y-%m').strftime("%Y-%m")
+            file_history = f"./data/{type}{message_json['chat']['id']}/{file_name}.json"
+            info_history = load(file=file_history)
+            if 'top' not in info_history.keys():
+                info_history['top'] = {}
+
+            id = choice(join)
+            if str(id) not in info_history['top'].keys():
+                info_history['top'][str(id)] = 0
+            info_history['top'][str(id)] += 1
+            info_history['last'] = str(id)
+            tops_month = sorted(info_history['top'].items(), key=lambda item: item[1], reverse=True)
+            info_history['win'] = []
+            top_n = tops_month[0][1]
+            for t_month in tops_month:
+                if t_month[1] == top_n:
+                    info_history['win'].append({
+                        "id": t_month[0],
+                        'n': t_month[1]
+                    })
+
+            name = get_name(info, id)
+            bot.reply_to(message, f"Отличился сегодня: \n{name}",
+                         parse_mode='markdown', disable_notification=DISABLE_NOTIFICATION)
+            save(data=info, file=file)
+            save(data=info_history, file=file_history)
+
+        else:
+            bot.reply_to(message, f"Повтори попытку через {TIME_SHIFT - (get_time_dt - time_last_topchel_dt)} секунд.",
+                         parse_mode='markdown', disable_notification=DISABLE_NOTIFICATION)
+    # bot.reply_to(message, f"All game users id: {join}",
+# 						disable_notification=DISABLE_NOTIFICATION)
+
+
 @bot.message_handler(commands=['topchel', 'pidor'], chat_types=['group', 'supergroup'])
 def send_topchel_g(message):
     message_json = message.json
@@ -119,21 +151,58 @@ def send_topchel_g(message):
                      f"Мало участников в игре ({join_len}), позовите других участников чата вступить в игру нажав /join.",
                      disable_notification=DISABLE_NOTIFICATION)
     else:
-        id = choice(join)
-        name = get_name(info['join'][id])
-        bot.reply_to(message, f"Отличился сегодня: \n{name}",
-                     parse_mode='markdown', disable_notification=DISABLE_NOTIFICATION)
+        if 'time_last_topchel' in info:
+            time_last_topchel = info['time_last_topchel']
+        else:
+            time_last_topchel = 0
+        time_last_topchel_dt = datetime.datetime.fromtimestamp(time_last_topchel)
+
+        get_time = time.time()
+        get_time_dt = datetime.datetime.fromtimestamp(get_time)
+        if get_time_dt.date() != time_last_topchel_dt.date():
+            info['time_last_topchel'] = get_time
+            file_name = datetime.datetime.strptime(f'{get_time_dt.year}-{get_time_dt.month}', '%Y-%m').strftime("%Y-%m")
+            file_history = f"./data/{type}{message_json['chat']['id']}/{file_name}.json"
+            info_history = load(file=file_history)
+            if 'top' not in info_history.keys():
+                info_history['top'] = {}
+
+            id = choice(join)
+            if str(id) not in info_history['top'].keys():
+                info_history['top'][str(id)] = 0
+            info_history['top'][str(id)] += 1
+            info_history['last'] = str(id)
+            tops_month = sorted(info_history['top'].items(), key=lambda item: item[1], reverse=True)
+            info_history['win'] = []
+            top_n = tops_month[0][1]
+            for t_month in tops_month:
+                if t_month[1] == top_n:
+                    info_history['win'].append({
+                        "id": t_month[0],
+                        'n': t_month[1]
+                    })
+
+            name = get_name(user=info['join'][id])
+            bot.reply_to(message, f"Отличился сегодня: \n{name}",
+                         parse_mode='markdown', disable_notification=DISABLE_NOTIFICATION)
+            save(data=info, file=file)
+            save(data=info_history, file=file_history)
+
+        else:
+            file_name = datetime.datetime.strptime(f'{get_time_dt.year}-{get_time_dt.month}', '%Y-%m').strftime("%Y-%m")
+            file_history = f"./data/{type}{message_json['chat']['id']}/{file_name}.json"
+            info_history = load(file=file_history)
+            id = info_history['last']
+            name = get_name(info, id)
+            bot.reply_to(message, f"Сегодня уже отличился {name}.\nПовторите попытку завтра.",
+                         parse_mode='markdown', disable_notification=DISABLE_NOTIFICATION)
     # bot.reply_to(message, f"All game users id: {join}",
 
 
 # 						disable_notification=DISABLE_NOTIFICATION)
 
 
-@bot.message_handler(
-    commands=[
-        'topchel', 'pidor',
-    ],
-    chat_types=['private', 'channel'])
+@bot.message_handler(commands=['topchel', 'pidor'], chat_types=['private', 'channel'])
 def send_topchel_p(message):
     text = "Эта команда для чатов, добавьте бота в группу и вызовите эту команду повторно в группе."
     bot.reply_to(message, text, disable_notification=DISABLE_NOTIFICATION)
@@ -203,8 +272,10 @@ def send_party_g(message):
         info['detach'] = {}
 
     text = 'Список участников:'
-    for i, key in enumerate(info['join'].keys()):
-        name = get_name(info['join'][key])
+    sorted_tuples = sorted(info['join'].keys())
+
+    for i, id in enumerate(sorted_tuples):
+        name = get_name(info, id)
         text += f'\n{i + 1}. {name}'
     bot.reply_to(message, text,
                  parse_mode='markdown', disable_notification=DISABLE_NOTIFICATION)
@@ -227,23 +298,63 @@ def send_departy_g(message):
     else:
         text = 'Список бывших участников:'
         for i, key in enumerate(info['detach'].keys()):
-            name = get_name(info['detach'][key])
+            name = get_name(user=info['detach'][key])
             text += f'\n{i + 1}. {name}'
         bot.reply_to(message, text,
                      parse_mode='markdown', disable_notification=DISABLE_NOTIFICATION)
 
 
-@bot.message_handler(
-    commands=[
-        'rating', 'ratingall',
-        'month', 'monthall',
-        'quarter', 'quarterall',
-        'year', 'yearall',
-    ],
-    chat_types=['group', 'supergroup'])
+@bot.message_handler(commands=['month'], chat_types=['group', 'supergroup'])
 def send_rating_g(message):
-    message_json = message.json
-    bot.reply_to(message, "рейтинг ещё не считается", disable_notification=DISABLE_NOTIFICATION)
+    get_top_list(bot, message, period_months=1, all=False)
+
+
+@bot.message_handler(commands=['monthall'], chat_types=['group', 'supergroup'])
+def send_rating_g(message):
+    get_top_list(bot, message, period_months=1, all=True)
+
+
+@bot.message_handler(commands=['quarter'], chat_types=['group', 'supergroup'])
+def send_rating_g(message):
+    get_top_list(bot, message, period_months=3, all=False)
+
+
+@bot.message_handler(commands=['quarterall'], chat_types=['group', 'supergroup'])
+def send_rating_g(message):
+    get_top_list(bot, message, period_months=3, all=False)
+
+
+@bot.message_handler(commands=['rating','year'], chat_types=['group', 'supergroup'])
+def send_rating_g(message):
+    get_top_list(bot, message, period_months=12, all=False)
+
+
+@bot.message_handler(commands=['ratingall','yearall'], chat_types=['group', 'supergroup'])
+def send_rating_g(message):
+    get_top_list(bot, message, period_months=12, all=True)
+
+
+@bot.message_handler(commands=['time'], chat_types=['group', 'supergroup'])
+def send_rating_g(message):
+    get_top_list(bot, message, all=False, all_time=True)
+
+
+@bot.message_handler(commands=['timeall'], chat_types=['group', 'supergroup'])
+def send_rating_g(message):
+    get_top_list(bot, message, all=True, all_time=True)
+
+
+@bot.message_handler(commands=['statistics'], chat_types=['group', 'supergroup'])
+def send_rating_g(message):
+    get_top_statistics(bot, message,  period_months=3, all_time=False)
+
+
+
+@bot.message_handler(commands=['statisticsall'], chat_types=['group', 'supergroup'])
+def send_rating_g(message):
+    get_top_statistics(bot, message, all_time=True)
+
+
 
 
 @bot.message_handler(content_types=['new_chat_members'], chat_types=['group', 'supergroup'])
