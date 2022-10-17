@@ -121,16 +121,18 @@ def get_top_list(bot, message, period_months=1, all=False, top_n=10, all_time=Fa
         name = get_name(user=user)
         if all or (i < top_n or top_score == n):
             top_score = n
-            text += f"{i + 1}. {n} -- {name}\n"
+            text += f"`{(i + 1): >2}.` {n} -- {name}\n"
         else:
             break
-    bot.reply_to(message, f"Рейтинг ({f'top {top_n}' if not all else 'all'}{since_text}):\n{text}",
+    total = len(sorted_tuples)
+    bot.reply_to(message, f"Рейтинг ({f'top {top_n}' if not all else 'all'}{since_text}):\n\n{text}\nВсего участников -- {total}",
                  parse_mode='markdown', disable_notification=DISABLE_NOTIFICATION)
     return text
 
 
 def get_top_statistics(bot, message, period_months=1, all_time=False):
     message_json = message.json
+    bot.send_chat_action(message_json['chat']['id'], action='typing', timeout=5)
 
     type = message_json['chat']['type']
     file = f"./data/{type}{message_json['chat']['id']}/info.json"
