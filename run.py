@@ -6,7 +6,7 @@ from random import choice
 from config import bot_token
 from const import DISABLE_NOTIFICATION, TIME_SHIFT
 from utils import load, save, get_name, get_top_list, get_top_statistics
-
+from config_replay import get_opening_remarks
 bot = telebot.TeleBot(bot_token)
 
 
@@ -80,6 +80,7 @@ def send_rules(message):
 @bot.message_handler(commands=['topcheltest', 'pidortest'], chat_types=['group', 'supergroup'])
 def send_topchel_g(message):
     message_json = message.json
+    bot.send_chat_action(message_json['chat']['id'], action='typing', timeout=8)
 
     type = message_json['chat']['type']
     file = f"./data/{type}{message_json['chat']['id']}/info.json"
@@ -124,8 +125,30 @@ def send_topchel_g(message):
                     })
 
             name = get_name(info, id)
-            bot.reply_to(message, f"Отличился сегодня: \n{name}",
-                         parse_mode='markdown', disable_notification=DISABLE_NOTIFICATION)
+            init, search, complit, choice_one = get_opening_remarks()
+
+            time.sleep(1)
+            text = f"{init}"
+            bot.send_message(message_json['chat']['id'], text=text, parse_mode='markdown',
+                             disable_notification=DISABLE_NOTIFICATION)
+            time.sleep(2)
+            bot.send_chat_action(message_json['chat']['id'], action='typing', timeout=5)
+            time.sleep(1)
+            text = f"{search}"
+            bot.send_message(message_json['chat']['id'], text=text, parse_mode='markdown',
+                             disable_notification=DISABLE_NOTIFICATION)
+            time.sleep(2)
+            text = f"{complit}"
+            bot.send_message(message_json['chat']['id'], text=text, parse_mode='markdown',
+                             disable_notification=DISABLE_NOTIFICATION)
+
+            time.sleep(4)
+            bot.send_chat_action(message_json['chat']['id'], action='typing', timeout=5)
+            time.sleep(1)
+
+            text = f"{choice_one}{name}"
+            bot.send_message(message_json['chat']['id'], text=text, parse_mode='markdown',
+                             disable_notification=DISABLE_NOTIFICATION)
             save(data=info, file=file)
             save(data=info_history, file=file_history)
 
@@ -139,6 +162,7 @@ def send_topchel_g(message):
 @bot.message_handler(commands=['topchel', 'pidor'], chat_types=['group', 'supergroup'])
 def send_topchel_g(message):
     message_json = message.json
+    bot.send_chat_action(message_json['chat']['id'], action='typing', timeout=10)
 
     type = message_json['chat']['type']
     file = f"./data/{type}{message_json['chat']['id']}/info.json"
@@ -183,8 +207,30 @@ def send_topchel_g(message):
                     })
 
             name = get_name(user=info['join'][id])
-            bot.reply_to(message, f"Отличился сегодня: \n{name}",
-                         parse_mode='markdown', disable_notification=DISABLE_NOTIFICATION)
+            init, search, complit, choice_one = get_opening_remarks()
+
+            time.sleep(1)
+            text = f"{init}"
+            bot.send_message(message_json['chat']['id'], text=text, parse_mode='markdown',
+                                   disable_notification=DISABLE_NOTIFICATION)
+            time.sleep(2)
+            bot.send_chat_action(message_json['chat']['id'], action='typing', timeout=5)
+            time.sleep(1)
+            text = f"{search}"
+            bot.send_message(message_json['chat']['id'], text=text, parse_mode='markdown',
+                                   disable_notification=DISABLE_NOTIFICATION)
+            time.sleep(2)
+            text = f"{complit}"
+            bot.send_message(message_json['chat']['id'], text=text, parse_mode='markdown',
+                                   disable_notification=DISABLE_NOTIFICATION)
+
+            time.sleep(4)
+            bot.send_chat_action(message_json['chat']['id'], action='typing', timeout=5)
+            time.sleep(1)
+
+            text = f"{choice_one}{name}"
+            bot.send_message(message_json['chat']['id'], text=text, parse_mode='markdown',
+                                   disable_notification=DISABLE_NOTIFICATION)
             save(data=info, file=file)
             save(data=info_history, file=file_history)
 
@@ -194,8 +240,11 @@ def send_topchel_g(message):
             info_history = load(file=file_history)
             id = info_history['last']
             name = get_name(info, id)
-            bot.reply_to(message, f"Сегодня уже отличился {name}.\nПовторите попытку завтра.",
-                         parse_mode='markdown', disable_notification=DISABLE_NOTIFICATION)
+
+            text = f"Согласно моей информации, по результатам сегодняшнего розыгрыша пидор дня -- {name}"
+            bot.send_message(message_json['chat']['id'], text=text, parse_mode='markdown',
+                             disable_notification=DISABLE_NOTIFICATION)
+
     # bot.reply_to(message, f"All game users id: {join}",
 
 
@@ -204,13 +253,15 @@ def send_topchel_g(message):
 
 @bot.message_handler(commands=['topchel', 'pidor'], chat_types=['private', 'channel'])
 def send_topchel_p(message):
-    text = "Эта команда для чатов, добавьте бота в группу и вызовите эту команду повторно в группе."
+    text = "Эта команда для чатов, добавьте бота в группу и вызовите её повторно."
     bot.reply_to(message, text, disable_notification=DISABLE_NOTIFICATION)
 
 
 @bot.message_handler(commands=['join'], chat_types=['group', 'supergroup'])
 def send_join_g(message):
     message_json = message.json
+    bot.send_chat_action(message_json['chat']['id'], action='typing', timeout=5)
+
     type = message_json['chat']['type']
     file = f"./data/{type}{message_json['chat']['id']}/info.json"
     info = load(file=file)
@@ -238,6 +289,8 @@ def send_join_g(message):
 @bot.message_handler(commands=['detach'], chat_types=['group', 'supergroup'])
 def send_detach_g(message):
     message_json = message.json
+    bot.send_chat_action(message_json['chat']['id'], action='typing', timeout=5)
+
     type = message_json['chat']['type']
     file = f"./data/{type}{message_json['chat']['id']}/info.json"
     info = load(file=file)
@@ -253,7 +306,7 @@ def send_detach_g(message):
     save(data=info, file=file)
 
     if detach is None:
-        bot.reply_to(message, f"Вас нет в списке участников игры.  Вернуться в игру можно с помощью /join",
+        bot.reply_to(message, f"Вас нет в списке участников игры. Вернуться в игру можно с помощью /join",
                      disable_notification=DISABLE_NOTIFICATION)
     else:
         bot.reply_to(message, f"Теперь вы не участвуете в игре. Вернуться в игру можно с помощью /join",
@@ -263,6 +316,8 @@ def send_detach_g(message):
 @bot.message_handler(commands=['party', 'list'], chat_types=['group', 'supergroup'])
 def send_party_g(message):
     message_json = message.json
+    bot.send_chat_action(message_json['chat']['id'], action='typing', timeout=5)
+
     type = message_json['chat']['type']
     file = f"./data/{type}{message_json['chat']['id']}/info.json"
     info = load(file=file)
@@ -284,6 +339,8 @@ def send_party_g(message):
 @bot.message_handler(commands=['departy', 'delist'], chat_types=['group', 'supergroup'])
 def send_departy_g(message):
     message_json = message.json
+    bot.send_chat_action(message_json['chat']['id'], action='typing', timeout=5)
+
     type = message_json['chat']['type']
     file = f"./data/{type}{message_json['chat']['id']}/info.json"
     info = load(file=file)

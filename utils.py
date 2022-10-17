@@ -58,6 +58,7 @@ def get_name(users_json=None, id=None, user=None):
 
 def get_top_list(bot, message, period_months=1, all=False, top_n=10, all_time=False):
     message_json = message.json
+    bot.send_chat_action(message_json['chat']['id'], action='typing', timeout=5)
 
     type = message_json['chat']['type']
     file = f"./data/{type}{message_json['chat']['id']}/info.json"
@@ -107,7 +108,9 @@ def get_top_list(bot, message, period_months=1, all=False, top_n=10, all_time=Fa
         return None
     text = ''
     sorted_tuples = sorted(history.items(), key=lambda item: item[1], reverse=True)
-
+    # Топ - 10 пидоров за текущий год:
+    #
+    # Всего участников — 18
     top_score = 0
     for i, (id, n) in enumerate(sorted_tuples):
         user = {"first_name": "no_name"}
@@ -134,13 +137,16 @@ def get_top_statistics(bot, message, period_months=1, all_time=False):
     info = load(file=file)
 
     get_time = time.time()
-    get_time_dt = datetime.datetime.fromtimestamp(get_time)
+    get_time_dt_ = datetime.datetime.fromtimestamp(get_time)
+    year = get_time_dt_.year + (get_time_dt_.month - 1 - 1) // 12
+    month = (get_time_dt_.month - 1 - 1) % 12 + 1
+    get_time_dt = get_time_dt_.replace(year=year, month=month)
 
-    file_historys = []
     files = []
+    file_now = f"{get_time_dt_.year:0>4}-{get_time_dt_.month:0>2}.json"
     if all_time:
         for filename in os.listdir(f"./data/{type}{message_json['chat']['id']}/"):
-            if filename != 'info.json':
+            if filename != 'info.json' and filename != file_now:
                 files.append(filename)
     else:
         for i in range(period_months):
@@ -168,6 +174,6 @@ def get_top_statistics(bot, message, period_months=1, all_time=False):
         bot.reply_to(message, f"За выбранный период нет статистики.",
                      parse_mode='markdown', disable_notification=DISABLE_NOTIFICATION)
         return None
-    bot.reply_to(message, f"За последние месяцы больше всех отличились:\n{text}",
+    bot.reply_to(message, f"Отличились за последние месяцы:\n{text}",
                  parse_mode='markdown', disable_notification=DISABLE_NOTIFICATION)
     return text
