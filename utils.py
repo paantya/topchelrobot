@@ -103,8 +103,9 @@ def get_top_list(bot, message, period_months=1, all=False, top_n=10, all_time=Fa
             history[k] += v
 
     if len(history) < 1:
-        bot.reply_to(message, f"За выбранный период нет статистики.",
-                     parse_mode='markdown', disable_notification=DISABLE_NOTIFICATION)
+        text =  f"За выбранный период нет статистики."
+        bot.send_message(message_json['chat']['id'], text=text, parse_mode='markdown',
+                         disable_notification=DISABLE_NOTIFICATION)
         return None
     text = ''
     sorted_tuples = sorted(history.items(), key=lambda item: item[1], reverse=True)
@@ -125,8 +126,10 @@ def get_top_list(bot, message, period_months=1, all=False, top_n=10, all_time=Fa
         else:
             break
     total = len(sorted_tuples)
-    bot.reply_to(message, f"Рейтинг ({f'top {top_n}' if not all else 'all'}{since_text}):\n\n{text}\nВсего участников -- {total}",
-                 parse_mode='markdown', disable_notification=DISABLE_NOTIFICATION)
+    text =  f"Рейтинг ({f'top {top_n}' if not all else 'all'}{since_text}):\n\n{text}\nВсего участников -- {total}"
+    bot.send_message(message_json['chat']['id'], text=text, parse_mode='markdown',
+                     disable_notification=DISABLE_NOTIFICATION)
+
     return text
 
 
@@ -173,9 +176,12 @@ def get_top_statistics(bot, message, period_months=1, all_time=False):
         text += f"\n"
 
     if len(files) < 1:
-        bot.reply_to(message, f"За выбранный период нет статистики.",
-                     parse_mode='markdown', disable_notification=DISABLE_NOTIFICATION)
+        text = f"За выбранный период нет статистики."
+        bot.send_message(message_json['chat']['id'], text=text, parse_mode='markdown',
+                         disable_notification=DISABLE_NOTIFICATION)
         return None
-    bot.reply_to(message, f"Отличились за последние месяцы:\n{text}",
-                 parse_mode='markdown', disable_notification=DISABLE_NOTIFICATION)
+
+    text = f"Отличились за последние месяцы:\n{text}"
+    bot.send_message(message_json['chat']['id'], text=text, parse_mode='markdown',
+                     disable_notification=DISABLE_NOTIFICATION)
     return text

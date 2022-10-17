@@ -22,6 +22,8 @@ def send_start(message):
 
 @bot.message_handler(commands=['help'])
 def send_help(message):
+    message_json = message.json
+
     text = """
 /topchel - выбираем топового чела
 /start -- запуск бота
@@ -39,9 +41,8 @@ def send_help(message):
 /statistics (/statisticsall) -- статистика отличившегося за месяц
 /pidor - выбираем пидора
 """
-    bot.reply_to(message, f"{text}",
-                 disable_notification=DISABLE_NOTIFICATION)
-
+    bot.send_message(message_json['chat']['id'], text=text, parse_mode='markdown',
+                     disable_notification=DISABLE_NOTIFICATION)
 
 @bot.message_handler(
     commands=[
@@ -56,25 +57,31 @@ def send_help(message):
     ],
     chat_types=['private', 'channel'])
 def send_join_p(message):
-    text = "Эта команда для чатов, добавьте бота в группу и вызовите эту команду повторно в группе."
+    text = "Эта команда для чатов, добавьте бота в группу и вызовите её повторно."
     bot.reply_to(message, text,
                  disable_notification=DISABLE_NOTIFICATION)
 
 
 @bot.message_handler(commands=['rules'])
 def send_rules(message):
+    message_json = message.json
     text = """
 *PIDOR GAME!*
 
-Правила игры:
-1. Добавляете бота в групповой чат.
-2. Добавляете бота в админы чата, что бы бот мог видеть список участников.
-3. В чате, игроки добавляются в игру, с помощью /join
-4. В чате, участники игры запускают выбор /topchel (или pidor) раз в сутки. Счётчик сбрасывается в 3 часа ночи.
-5. Просмотреть рейтинг можно с помощью /rating 
+Правила игры (только для групповых чатов):
+1. Зарегистрируйтесь в игре /join.
+2. Запустите розыгрыш по команде /topchel (или /pidor).
+3. Просмотреть рейтинг можно с помощью /rating (/ratingall)
+4. Просмотреть помесячный рейтинг можно с помощью /statistics (/statisticsall).
+5. Описание остальных команд можно найти в /help.
+6. Вы великолепны!
+
+Розыгрыш можно запустить раз в сутки, при повторном вызове будет выведен результат предыдущего розыгрыша.
+
+Сброс розогрыша происходит в 3 часа ночи по Москве. 
 """
-    bot.reply_to(message, text,
-                 parse_mode='markdown', disable_notification=DISABLE_NOTIFICATION)
+    bot.send_message(message_json['chat']['id'], text=text, parse_mode='markdown',
+                     disable_notification=DISABLE_NOTIFICATION)
 
 
 @bot.message_handler(commands=['topcheltest', 'pidortest'], chat_types=['group', 'supergroup'])
@@ -251,12 +258,6 @@ def send_topchel_g(message):
 # 						disable_notification=DISABLE_NOTIFICATION)
 
 
-@bot.message_handler(commands=['topchel', 'pidor'], chat_types=['private', 'channel'])
-def send_topchel_p(message):
-    text = "Эта команда для чатов, добавьте бота в группу и вызовите её повторно."
-    bot.reply_to(message, text, disable_notification=DISABLE_NOTIFICATION)
-
-
 @bot.message_handler(commands=['join'], chat_types=['group', 'supergroup'])
 def send_join_g(message):
     message_json = message.json
@@ -271,7 +272,7 @@ def send_join_g(message):
         info['detach'] = {}
 
     if str(message_json['from']['id']) in info['join'].keys():
-        bot.reply_to(message, f"Вы уже есть в списке участников в игры.",
+        bot.reply_to(message, f"Вы уже есть в списке участников игры, выйти --  /detach",
                      disable_notification=DISABLE_NOTIFICATION)
     else:
         info['join'][message_json['from']['id']] = message_json['from']
@@ -279,10 +280,10 @@ def send_join_g(message):
         detach = info['detach'].pop(str(message_json['from']['id']), None)
         save(data=info, file=file)
         if detach is not None:
-            bot.reply_to(message, f"Поздравляем с возвращением в игру!\nДля выхода из игры используйте /detach.",
+            bot.reply_to(message, f"Поздравляем с возвращением в игру!\nДля выхода из игры используйте /detach",
                          disable_notification=DISABLE_NOTIFICATION)
         else:
-            bot.reply_to(message, f"Поздравляем, теперь вы участвуете в игре!\nДля выхода из игры используйте /detach.",
+            bot.reply_to(message, f"Поздравляем, теперь вы участвуете в игре!\nДля выхода из игры используйте /detach",
                          disable_notification=DISABLE_NOTIFICATION)
 
 
@@ -332,8 +333,8 @@ def send_party_g(message):
     for i, id in enumerate(sorted_tuples):
         name = get_name(info, id)
         text += f'\n{i + 1}. {name}'
-    bot.reply_to(message, text,
-                 parse_mode='markdown', disable_notification=DISABLE_NOTIFICATION)
+    bot.send_message(message_json['chat']['id'], text=text, parse_mode='markdown',
+                     disable_notification=DISABLE_NOTIFICATION)
 
 
 @bot.message_handler(commands=['departy', 'delist'], chat_types=['group', 'supergroup'])
@@ -350,15 +351,16 @@ def send_departy_g(message):
         info['detach'] = {}
 
     if len(info['detach'].keys()) < 1:
-        bot.reply_to(message, "Список бывших участников пуст.",
-                     parse_mode='markdown', disable_notification=DISABLE_NOTIFICATION)
+        text = "Список бывших участников пуст."
+        bot.send_message(message_json['chat']['id'], text=text, parse_mode='markdown',
+                         disable_notification=DISABLE_NOTIFICATION)
     else:
         text = 'Список бывших участников:'
         for i, key in enumerate(info['detach'].keys()):
             name = get_name(user=info['detach'][key])
             text += f'\n{i + 1}. {name}'
-        bot.reply_to(message, text,
-                     parse_mode='markdown', disable_notification=DISABLE_NOTIFICATION)
+        bot.send_message(message_json['chat']['id'], text=text, parse_mode='markdown',
+                         disable_notification=DISABLE_NOTIFICATION)
 
 
 @bot.message_handler(commands=['month'], chat_types=['group', 'supergroup'])
@@ -410,7 +412,6 @@ def send_rating_g(message):
 @bot.message_handler(commands=['statisticsall'], chat_types=['group', 'supergroup'])
 def send_rating_g(message):
     get_top_statistics(bot, message, all_time=True)
-
 
 
 
