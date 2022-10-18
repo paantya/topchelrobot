@@ -362,10 +362,10 @@ def send_departy_g(message):
             name = get_name(info, id)
             text += f'\n{i + 1}. #ID{id} - {name}'
 
-        text = 'Список бывших участников:'
-        for i, key in enumerate(info['detach'].keys()):
-            name = get_name(user=info['detach'][key])
-            text += f'\n{i + 1}. {name}'
+        # text = 'Список бывших участников:'
+        # for i, key in enumerate(info['detach'].keys()):
+        #     name = get_name(user=info['detach'][key])
+        #     text += f'\n{i + 1}. {name}'
         bot.send_message(message_json['chat']['id'], text=text, parse_mode='markdown',
                          disable_notification=DISABLE_NOTIFICATION)
 
