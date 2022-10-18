@@ -332,7 +332,7 @@ def send_party_g(message):
 
     for i, id in enumerate(sorted_tuples):
         name = get_name(info, id)
-        text += f'\n{i + 1}. #ID{id} {name}'
+        text += f'\n{i + 1}. #ID{id} - {name}'
     bot.send_message(message_json['chat']['id'], text=text, parse_mode='markdown',
                      disable_notification=DISABLE_NOTIFICATION)
 
