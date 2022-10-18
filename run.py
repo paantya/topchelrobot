@@ -331,7 +331,7 @@ def send_party_g(message):
     sorted_tuples = sorted([int(k) for k in info['join'].keys()])
 
     for i, id in enumerate(sorted_tuples):
-        name = get_name(info, id)
+        name = get_name(info, str(id))
         text += f'\n{i + 1}. #ID{id} - {name}'
     bot.send_message(message_json['chat']['id'], text=text, parse_mode='markdown',
                      disable_notification=DISABLE_NOTIFICATION)
@@ -359,7 +359,7 @@ def send_departy_g(message):
         sorted_tuples = sorted([int(k) for k in info['detach'].keys()])
 
         for i, id in enumerate(sorted_tuples):
-            name = get_name(info, id)
+            name = get_name(info, str(id))
             text += f'\n{i + 1}. #ID{id} - {name}'
 
         # text = 'Список бывших участников:'
