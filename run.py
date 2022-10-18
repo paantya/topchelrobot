@@ -14,7 +14,7 @@ bot = telebot.TeleBot(bot_token)
 def send_start(message):
     text = """
 Добро пожаловать!
-Для получения списка команд введите /help
+Получить список команд -- /help.
 """
     message_json = message.json
     bot.send_message(message_json['chat']['id'], text=text, parse_mode='markdown',
@@ -26,20 +26,20 @@ def send_help(message):
     message_json = message.json
 
     text = """
-/topchel - выбираем топового чела
+/topchel - запустить розыгрыш
 /start -- запуск бота
 /help -- это сообщение
 /rules -- правила игры
-/join --  принять участие в игре
-/detach --  перестать участвовать в игре
+/join --  вступить в игру
+/detach --  выйти из игры
 /party (/list)-- список участников
 /departy (/delist)-- список бывших участников
-/rating (/ratingall) -- рейтинг "топ 10" (all) за год
-/month (/monthall) -- рейтинг за месяц
-/year (/yearall) -- рейтинг за год
+/rating (/ratingall) -- рейтинг с начала года
+/month (/monthall) -- рейтинг за этот месяц
+/year (/yearall) -- то же самое что и /rating
 /time (/timeall) -- рейтинг за всё время игры
-/statistics (/statisticsall) -- статистика отличившегося за месяц
-/pidor - выбираем пидора
+/statistics (/statisticsall) -- топ месяца
+/pidor - запустить розыгрыш пидора
 """
     bot.send_message(message_json['chat']['id'], text=text, parse_mode='markdown',
                      disable_notification=DISABLE_NOTIFICATION)
