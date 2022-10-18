@@ -327,7 +327,7 @@ def send_party_g(message):
     if 'detach' not in info.keys():
         info['detach'] = {}
 
-    text = f"Список участников (`chat_type`=`{message_json['chat']['type']}`, `chat_id`=`{message_json['chat']['id']}`):"
+    text = f"Список участников ({message_json['chat']['name']} | type: `{message_json['chat']['type']}`| id:`{message_json['chat']['id']}`):"
     sorted_tuples = sorted(info['join'].keys())
 
     for i, id in enumerate(sorted_tuples):
