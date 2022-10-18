@@ -10,7 +10,7 @@ from config_replay import get_opening_remarks
 bot = telebot.TeleBot(bot_token)
 
 
-@bot.message_handler(commands=['stpip3 install -U uvloopart'])
+@bot.message_handler(commands=['start'])
 def send_start(message):
     text = """
 Добро пожаловать!
