@@ -455,7 +455,7 @@ def send_rating_g(message):
                 info['detach'][str(message_json['from']['id'])] = detach
                 info['detach'][str(message_json['from']['id'])]['detach_ts'] = time.time()
             save(data=info, file=file)
-            bot.reply_to(message, "Привет, ты чо охуел?\nты больше не участвуешь в игре!",
+            bot.reply_to(message, "Привет, ты чо охуел?\nВыписан из руских и из игры!",
                          disable_notification=DISABLE_NOTIFICATION)
         else:
             bot.reply_to(message, "Привет, ты чо охуел?",
