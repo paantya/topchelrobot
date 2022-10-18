@@ -16,8 +16,9 @@ def send_start(message):
 Добро пожаловать!
 Для получения списка команд введите /help
 """
-    bot.reply_to(message, text,
-                 disable_notification=DISABLE_NOTIFICATION)
+    message_json = message.json
+    bot.send_message(message_json['chat']['id'], text=text, parse_mode='markdown',
+                     disable_notification=DISABLE_NOTIFICATION)
 
 
 @bot.message_handler(commands=['help'])
