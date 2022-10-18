@@ -56,7 +56,7 @@ def send_help(message):
         'party'
     ],
     chat_types=['private', 'channel'])
-def send_join_p(message):
+def send_exit_get_p(message):
     text = "Эта команда для чатов, добавьте бота в группу и вызовите её повторно."
     bot.reply_to(message, text,
                  disable_notification=DISABLE_NOTIFICATION)
@@ -327,7 +327,7 @@ def send_party_g(message):
     if 'detach' not in info.keys():
         info['detach'] = {}
 
-    text = f"Список участников игры ({message_json['chat']['title']} | type: `{message_json['chat']['type']}`| id:`{message_json['chat']['id']}`):"
+    text = f"Список участников игры ({message_json['chat']['title']} | type: `{message_json['chat']['type']}` | id:`{message_json['chat']['id']}`):"
     sorted_tuples = sorted(info['join'].keys())
 
     for i, id in enumerate(sorted_tuples):
@@ -351,11 +351,11 @@ def send_departy_g(message):
         info['detach'] = {}
 
     if len(info['detach'].keys()) < 1:
-        text = f"Список бывших участников игры пуст ({message_json['chat']['title']} | type: `{message_json['chat']['type']}`| id:`{message_json['chat']['id']}`)."
+        text = f"Список бывших участников игры пуст ({message_json['chat']['title']} | type: `{message_json['chat']['type']}` | id:`{message_json['chat']['id']}`)."
         bot.send_message(message_json['chat']['id'], text=text, parse_mode='markdown',
                          disable_notification=DISABLE_NOTIFICATION)
     else:
-        text = f"Список бывших участников игры ({message_json['chat']['title']} | type: `{message_json['chat']['type']}`| id:`{message_json['chat']['id']}`):"
+        text = f"Список бывших участников игры ({message_json['chat']['title']} | type: `{message_json['chat']['type']}` | id:`{message_json['chat']['id']}`):"
         sorted_tuples = sorted(info['detach'].keys())
 
         for i, id in enumerate(sorted_tuples):
@@ -380,24 +380,30 @@ def send_rating_g(message):
     get_top_list(bot, message, period_months=1, all=True)
 
 
-@bot.message_handler(commands=['quarter'], chat_types=['group', 'supergroup'])
-def send_rating_g(message):
-    get_top_list(bot, message, period_months=3, all=False)
-
-
-@bot.message_handler(commands=['quarterall'], chat_types=['group', 'supergroup'])
-def send_rating_g(message):
-    get_top_list(bot, message, period_months=3, all=False)
+# @bot.message_handler(commands=['quarter'], chat_types=['group', 'supergroup'])
+# def send_rating_g(message):
+#     get_top_list(bot, message, period_months=3, all=False)
+#
+#
+# @bot.message_handler(commands=['quarterall'], chat_types=['group', 'supergroup'])
+# def send_rating_g(message):
+#     get_top_list(bot, message, period_months=3, all=False)
 
 
 @bot.message_handler(commands=['rating','year'], chat_types=['group', 'supergroup'])
 def send_rating_g(message):
-    get_top_list(bot, message, period_months=12, all=False)
+    get_time = time.time()
+    get_time_dt = datetime.datetime.fromtimestamp(get_time)
+    month = get_time_dt.month
+    get_top_list(bot, message, period_months=month, all=False)
 
 
 @bot.message_handler(commands=['ratingall','yearall'], chat_types=['group', 'supergroup'])
 def send_rating_g(message):
-    get_top_list(bot, message, period_months=12, all=True)
+    get_time = time.time()
+    get_time_dt = datetime.datetime.fromtimestamp(get_time)
+    month = get_time_dt.month
+    get_top_list(bot, message, period_months=month, all=True)
 
 
 @bot.message_handler(commands=['time'], chat_types=['group', 'supergroup'])
