@@ -328,7 +328,7 @@ def send_party_g(message):
         info['detach'] = {}
 
     text = f"Список участников игры ({message_json['chat']['title']} | type: `{message_json['chat']['type']}` | id:`{message_json['chat']['id']}`):"
-    sorted_tuples = sorted(info['join'].keys())
+    sorted_tuples = sorted([int(k) for k in info['join'].keys()])
 
     for i, id in enumerate(sorted_tuples):
         name = get_name(info, id)
@@ -356,7 +356,7 @@ def send_departy_g(message):
                          disable_notification=DISABLE_NOTIFICATION)
     else:
         text = f"Список бывших участников игры ({message_json['chat']['title']} | type: `{message_json['chat']['type']}` | id:`{message_json['chat']['id']}`):"
-        sorted_tuples = sorted(info['detach'].keys())
+        sorted_tuples = sorted([int(k) for k in info['detach'].keys()])
 
         for i, id in enumerate(sorted_tuples):
             name = get_name(info, id)
