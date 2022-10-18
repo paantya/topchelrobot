@@ -35,7 +35,6 @@ def send_help(message):
 /departy (/delist)-- список бывших участников
 /rating (/ratingall) -- рейтинг "топ 10" (all) за год
 /month (/monthall) -- рейтинг за месяц
-/quarter (/quarterall) -- рейтинг за 3 месяца
 /year (/yearall) -- рейтинг за год
 /time (/timeall) -- рейтинг за всё время игры
 /statistics (/statisticsall) -- статистика отличившегося за месяц
