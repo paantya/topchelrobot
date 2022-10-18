@@ -327,7 +327,7 @@ def send_party_g(message):
     if 'detach' not in info.keys():
         info['detach'] = {}
 
-    text = f"Список участников ({message_json['chat']['title']} | type: `{message_json['chat']['type']}`| id:`{message_json['chat']['id']}`):"
+    text = f"Список участников игры ({message_json['chat']['title']} | type: `{message_json['chat']['type']}`| id:`{message_json['chat']['id']}`):"
     sorted_tuples = sorted(info['join'].keys())
 
     for i, id in enumerate(sorted_tuples):
@@ -351,10 +351,17 @@ def send_departy_g(message):
         info['detach'] = {}
 
     if len(info['detach'].keys()) < 1:
-        text = "Список бывших участников пуст."
+        text = f"Список бывших участников игры пуст ({message_json['chat']['title']} | type: `{message_json['chat']['type']}`| id:`{message_json['chat']['id']}`)."
         bot.send_message(message_json['chat']['id'], text=text, parse_mode='markdown',
                          disable_notification=DISABLE_NOTIFICATION)
     else:
+        text = f"Список бывших участников игры ({message_json['chat']['title']} | type: `{message_json['chat']['type']}`| id:`{message_json['chat']['id']}`):"
+        sorted_tuples = sorted(info['detach'].keys())
+
+        for i, id in enumerate(sorted_tuples):
+            name = get_name(info, id)
+            text += f'\n{i + 1}. #ID{id} - {name}'
+
         text = 'Список бывших участников:'
         for i, key in enumerate(info['detach'].keys()):
             name = get_name(user=info['detach'][key])
