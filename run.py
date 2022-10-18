@@ -327,12 +327,12 @@ def send_party_g(message):
     if 'detach' not in info.keys():
         info['detach'] = {}
 
-    text = 'Список участников:'
+    text = f"Список участников (chat_type={message_json['chat']['type']}, chat_id={message_json['chat']['id']}):"
     sorted_tuples = sorted(info['join'].keys())
 
     for i, id in enumerate(sorted_tuples):
         name = get_name(info, id)
-        text += f'\n{i + 1}. {name}'
+        text += f'\n{i + 1}. #ID{id} {name}'
     bot.send_message(message_json['chat']['id'], text=text, parse_mode='markdown',
                      disable_notification=DISABLE_NOTIFICATION)
 
