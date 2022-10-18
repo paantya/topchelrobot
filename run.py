@@ -84,86 +84,86 @@ def send_rules(message):
                      disable_notification=DISABLE_NOTIFICATION)
 
 
-@bot.message_handler(commands=['topcheltest', 'pidortest'], chat_types=['group', 'supergroup'])
-def send_topchel_g(message):
-    message_json = message.json
-    bot.send_chat_action(message_json['chat']['id'], action='typing', timeout=8)
-
-    type = message_json['chat']['type']
-    file = f"./data/{type}{message_json['chat']['id']}/info.json"
-    info = load(file=file)
-    join = list(info['join'].keys())
-
-    join_len = len(join)
-    if join_len < 1:
-        bot.reply_to(message,
-                     f"Мало участников в игре ({join_len}), позовите других участников чата вступить в игру нажав /join.",
-                     disable_notification=DISABLE_NOTIFICATION)
-    else:
-        if 'time_last_topchel' in info:
-            time_last_topchel = info['time_last_topchel']
-        else:
-            time_last_topchel = 0
-        time_last_topchel_dt = datetime.datetime.fromtimestamp(time_last_topchel)
-
-        get_time = time.time()
-        get_time_dt = datetime.datetime.fromtimestamp(get_time)
-        if (get_time_dt - time_last_topchel_dt) > TIME_SHIFT:
-            info['time_last_topchel'] = get_time
-            file_name = datetime.datetime.strptime(f'{get_time_dt.year}-{get_time_dt.month}', '%Y-%m').strftime("%Y-%m")
-            file_history = f"./data/{type}{message_json['chat']['id']}/{file_name}.json"
-            info_history = load(file=file_history)
-            if 'top' not in info_history.keys():
-                info_history['top'] = {}
-
-            id = choice(join)
-            if str(id) not in info_history['top'].keys():
-                info_history['top'][str(id)] = 0
-            info_history['top'][str(id)] += 1
-            info_history['last'] = str(id)
-            tops_month = sorted(info_history['top'].items(), key=lambda item: item[1], reverse=True)
-            info_history['win'] = []
-            top_n = tops_month[0][1]
-            for t_month in tops_month:
-                if t_month[1] == top_n:
-                    info_history['win'].append({
-                        "id": t_month[0],
-                        'n': t_month[1]
-                    })
-
-            name = get_name(info, id)
-            init, search, complit, choice_one = get_opening_remarks()
-
-            time.sleep(1)
-            text = f"{init}"
-            bot.send_message(message_json['chat']['id'], text=text, parse_mode='markdown',
-                             disable_notification=DISABLE_NOTIFICATION)
-            time.sleep(2)
-            bot.send_chat_action(message_json['chat']['id'], action='typing', timeout=5)
-            time.sleep(1)
-            text = f"{search}"
-            bot.send_message(message_json['chat']['id'], text=text, parse_mode='markdown',
-                             disable_notification=DISABLE_NOTIFICATION)
-            time.sleep(2)
-            text = f"{complit}"
-            bot.send_message(message_json['chat']['id'], text=text, parse_mode='markdown',
-                             disable_notification=DISABLE_NOTIFICATION)
-
-            time.sleep(4)
-            bot.send_chat_action(message_json['chat']['id'], action='typing', timeout=5)
-            time.sleep(1)
-
-            text = f"{choice_one}{name}"
-            bot.send_message(message_json['chat']['id'], text=text, parse_mode='markdown',
-                             disable_notification=DISABLE_NOTIFICATION)
-            save(data=info, file=file)
-            save(data=info_history, file=file_history)
-
-        else:
-            bot.reply_to(message, f"Повтори попытку через {TIME_SHIFT - (get_time_dt - time_last_topchel_dt)} секунд.",
-                         parse_mode='markdown', disable_notification=DISABLE_NOTIFICATION)
-    # bot.reply_to(message, f"All game users id: {join}",
-# 						disable_notification=DISABLE_NOTIFICATION)
+# @bot.message_handler(commands=['topcheltest', 'pidortest'], chat_types=['group', 'supergroup'])
+# def send_topchel_g(message):
+#     message_json = message.json
+#     bot.send_chat_action(message_json['chat']['id'], action='typing', timeout=8)
+#
+#     type = message_json['chat']['type']
+#     file = f"./data/{type}{message_json['chat']['id']}/info.json"
+#     info = load(file=file)
+#     join = list(info['join'].keys())
+#
+#     join_len = len(join)
+#     if join_len < 1:
+#         bot.reply_to(message,
+#                      f"Мало участников в игре ({join_len}), позовите других участников чата вступить в игру нажав /join.",
+#                      disable_notification=DISABLE_NOTIFICATION)
+#     else:
+#         if 'time_last_topchel' in info:
+#             time_last_topchel = info['time_last_topchel']
+#         else:
+#             time_last_topchel = 0
+#         time_last_topchel_dt = datetime.datetime.fromtimestamp(time_last_topchel)
+#
+#         get_time = time.time()
+#         get_time_dt = datetime.datetime.fromtimestamp(get_time)
+#         if (get_time_dt - time_last_topchel_dt) > TIME_SHIFT:
+#             info['time_last_topchel'] = get_time
+#             file_name = datetime.datetime.strptime(f'{get_time_dt.year}-{get_time_dt.month}', '%Y-%m').strftime("%Y-%m")
+#             file_history = f"./data/{type}{message_json['chat']['id']}/{file_name}.json"
+#             info_history = load(file=file_history)
+#             if 'top' not in info_history.keys():
+#                 info_history['top'] = {}
+#
+#             id = choice(join)
+#             if str(id) not in info_history['top'].keys():
+#                 info_history['top'][str(id)] = 0
+#             info_history['top'][str(id)] += 1
+#             info_history['last'] = str(id)
+#             tops_month = sorted(info_history['top'].items(), key=lambda item: item[1], reverse=True)
+#             info_history['win'] = []
+#             top_n = tops_month[0][1]
+#             for t_month in tops_month:
+#                 if t_month[1] == top_n:
+#                     info_history['win'].append({
+#                         "id": t_month[0],
+#                         'n': t_month[1]
+#                     })
+#
+#             name = get_name(info, id)
+#             init, search, complit, choice_one = get_opening_remarks()
+#
+#             time.sleep(1)
+#             text = f"{init}"
+#             bot.send_message(message_json['chat']['id'], text=text, parse_mode='markdown',
+#                              disable_notification=DISABLE_NOTIFICATION)
+#             time.sleep(2)
+#             bot.send_chat_action(message_json['chat']['id'], action='typing', timeout=5)
+#             time.sleep(1)
+#             text = f"{search}"
+#             bot.send_message(message_json['chat']['id'], text=text, parse_mode='markdown',
+#                              disable_notification=DISABLE_NOTIFICATION)
+#             time.sleep(2)
+#             text = f"{complit}"
+#             bot.send_message(message_json['chat']['id'], text=text, parse_mode='markdown',
+#                              disable_notification=DISABLE_NOTIFICATION)
+#
+#             time.sleep(4)
+#             bot.send_chat_action(message_json['chat']['id'], action='typing', timeout=5)
+#             time.sleep(1)
+#
+#             text = f"{choice_one}{name}"
+#             bot.send_message(message_json['chat']['id'], text=text, parse_mode='markdown',
+#                              disable_notification=DISABLE_NOTIFICATION)
+#             save(data=info, file=file)
+#             save(data=info_history, file=file_history)
+#
+#         else:
+#             bot.reply_to(message, f"Повтори попытку через {TIME_SHIFT - (get_time_dt - time_last_topchel_dt)} секунд.",
+#                          parse_mode='markdown', disable_notification=DISABLE_NOTIFICATION)
+#     # bot.reply_to(message, f"All game users id: {join}",
+# # 						disable_notification=DISABLE_NOTIFICATION)
 
 
 @bot.message_handler(commands=['topchel', 'pidor'], chat_types=['group', 'supergroup'])
