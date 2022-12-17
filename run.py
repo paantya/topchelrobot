@@ -501,9 +501,9 @@ dict_stop_world = {
 
 
 
-@bot.message_handler(func=lambda message: message.text.split(' ')[0].lower() in dict_stop_world.keys())
+@bot.message_handler(func=lambda message: message.text.split(' ')[-1].lower() in dict_stop_world.keys())
 def echo_da(message):
-    k = message.text.split(' ')[0].lower()
+    k = message.text.split(' ')[-1].lower()
     text, eps = dict_stop_world[k]
     if eps > random.random():
         bot.reply_to(message, text, disable_notification=DISABLE_NOTIFICATION)
