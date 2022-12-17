@@ -1,3 +1,5 @@
+import random
+
 import telebot
 import time, datetime
 from random import choice
@@ -464,11 +466,47 @@ def send_rating_g(message):
         bot.reply_to(message, f"Ну и проваливай 8-битный!",
                      disable_notification=DISABLE_NOTIFICATION)
 
+# {
+#     'message_id': 571,
+#     'from':
+#         {
+#             'id': 215,
+#             'is_bot': False,
+#             'first_name': 'Anton',
+#             'last_name': 'Pa',
+#             'username': 'apa',
+#             'language_code': 'en',
+#             'is_premium': True
+#         },
+#     'chat':
+#         {
+#             'id': -61113,
+#             'title': 'pidort',
+#             'type': 'group',
+#             'all_members_are_administrators': True
+#         },
+#     'date': 16630,
+#     'text': 'ff'
+# }
 
-# @bot.message_handler(func=lambda message: True)
-# def echo_all(message):
-# 	text = "Для получения списка команд введите /help."
-# 	bot.reply_to(message, str(message.json), disable_notification=DISABLE_NOTIFICATION)
+
+dict_stop_world = {
+    'да?': ('да!',
+            0.05),
+    'da?': ('да!',
+            0.1),
+    'пидор': ('пидор!',
+              0.1),
+}
+
+
+
+@bot.message_handler(func=lambda message: message.text.split(' ')[0].lower() in dict_stop_world.keys())
+def echo_da(message):
+    k = message.text.split(' ')[0].lower()
+    text, eps = dict_stop_world[k]
+    if eps > random.random():
+        bot.reply_to(message, text, disable_notification=DISABLE_NOTIFICATION)
 
 
 # @bot.message_handler(func=lambda message: True)
