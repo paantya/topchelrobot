@@ -490,27 +490,26 @@ def send_rating_g(message):
 # }
 
 
-dict_stop_world = {
-    'да?': ('да!',
-            0.05),
-    'da?': ('да!',
-            0.1),
-    'пидор': ('пидор!',
-              0.99),
+# dict_stop_world = {
+#     'да?': ('да!',
+#             0.05),
+#     'da?': ('да!',
+#             0.1),
+#     'пидор': ('пидор!',
+#               0.99),
 }
 
 
 
-@bot.message_handler(func=lambda message: True)
-def echo_da(message):
-
-    k = message.text.split(' ')[-1].lower()
-    if k in dict_stop_world.keys():
-        text, eps = dict_stop_world[k]
-        if eps > random.random():
-            bot.reply_to(message, text, disable_notification=DISABLE_NOTIFICATION)
-    else:
-        print(f"k: {k}, not in {dict_stop_world.keys()}.")
+# @bot.message_handler(func=lambda message: True)
+# def echo_da(message):
+#     k = message.text.split(' ')[-1].lower()
+#     if k in dict_stop_world.keys():
+#         text, eps = dict_stop_world[k]
+#         if eps > random.random():
+#             bot.reply_to(message, text, disable_notification=DISABLE_NOTIFICATION)
+#     else:
+#         print(f"k: {k}, not in {dict_stop_world.keys()}.")
 
 # @bot.message_handler(func=lambda message: True)
 # def echo_all(message):
