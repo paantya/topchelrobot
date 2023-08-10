@@ -113,6 +113,7 @@ def get_top_list(bot, message, period_months=1, all=False, top_n=10, all_time=Fa
     #
     # Всего участников — 18
     top_score = 0
+    i_sum = 0
     for i, (id, n) in enumerate(sorted_tuples):
         user = {"first_name": "no_name"}
         if id in info['detach']:
@@ -123,10 +124,11 @@ def get_top_list(bot, message, period_months=1, all=False, top_n=10, all_time=Fa
         if all or (i < top_n or top_score == n):
             top_score = n
             text += f"`{(i + 1): >2}.` {n} -- {name}\n"
+            i_sum += 1
         else:
             break
     total = len(sorted_tuples)
-    text =  f"Рейтинг ({f'top {top_n}' if not all else 'all'}{since_text}):\n\n{text}\nВсего участников -- {total}"
+    text =  f"Рейтинг ({f'top {i_sum}' if not all else 'all'}{since_text}):\n\n{text}\nВсего победителей -- {total}"
     bot.send_message(message_json['chat']['id'], text=text, parse_mode='markdown',
                      disable_notification=DISABLE_NOTIFICATION)
 
