@@ -111,7 +111,7 @@ def get_top_list(bot, message, period_months=1, all=False, top_n=10, all_time=Fa
     history = {}
 
     if period_months == 1:
-        current_date = datetime.now()
+        current_date = datetime.datetime.now()
         all_days_in_time = current_date.day
 
     sum_top = 0
