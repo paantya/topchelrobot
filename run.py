@@ -243,6 +243,15 @@ def send_topchel_g(message):
             save(data=info, file=file)
             save(data=info_history, file=file_history)
 
+
+            try:
+                text = f"[INFO][{message_json['chat']['type']}][`{message_json['chat']['id']}`][*{message_json['chat']['title']}*] {name} (id: `{id}`)"
+                bot.send_message(-1001717789783, text=text, parse_mode='markdown',
+                                       disable_notification=DISABLE_NOTIFICATION)
+                time.sleep(1)
+            except:
+                pass
+
         else:
             file_name = datetime.datetime.strptime(f'{get_time_dt.year}-{get_time_dt.month}', '%Y-%m').strftime("%Y-%m")
             file_history = f"./data/{type}{message_json['chat']['id']}/{file_name}.json"
