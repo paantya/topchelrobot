@@ -196,7 +196,7 @@ def get_top_statistics(bot, message, period_months=1, all_time=False):
         for k,v in info_history['top'].items():
             sum_top += v
 
-        text += f"*{date_loc_text}* win rate: {sum_top}/{num_days} ({int(sum_top/num_days*100)} [%]):*\n"
+        text += f"*{date_loc_text}* (win rate: {sum_top}/{num_days} ~ {int(sum_top/num_days*100)}%):\n"
 
 
         for i, win in enumerate(info_history['win']):
