@@ -153,7 +153,7 @@ def get_top_list(bot, message, period_months=1, all=False, top_n=10, all_time=Fa
             break
     total = len(sorted_tuples)
     text_lost_day = f'\nПропущено разыгрышей в месяце -- {lost_days}' if period_months == 1 and lost_days > 0 else ''
-    text_win_rate = f'{sum_top} побед из {activity_time_all} возможных до конца месяца'
+    text_win_rate = f'{sum_top} из {activity_time_all} возможных побед до конца месяца'
     text_top = f'top {i_sum}' if not all else 'all'
     text = f"Рейтинг ({text_top}{since_text}):\n\n{text}\nВсего победителей -- {total}\n{text_win_rate}{text_lost_day}"
     bot.send_message(message_json['chat']['id'], text=text, parse_mode='markdown',
