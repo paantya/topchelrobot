@@ -1,8 +1,11 @@
 import os
+import re
 import json
+import calendar
+import time, datetime
+
 from pathlib import Path
 
-import time, datetime
 from const import DISABLE_NOTIFICATION, TIME_SHIFT
 
 def file_exist_and_touch(file):
@@ -57,6 +60,8 @@ def get_name(users_json=None, id=None, user=None):
 
 
 def get_top_list(bot, message, period_months=1, all=False, top_n=10, all_time=False):
+
+    activity_time_all = 0
     message_json = message.json
     bot.send_chat_action(message_json['chat']['id'], action='typing', timeout=5)
 
@@ -81,6 +86,14 @@ def get_top_list(bot, message, period_months=1, all=False, top_n=10, all_time=Fa
         for filename in files:
             file_history = f"./data/{type}{message_json['chat']['id']}/{filename}"
             file_historys.append(file_history)
+
+            match = re.search(r'(\d{4})-(\d{2})\.json', filename)
+            if match:
+                year = match.group(1)  # Группа 1 - это год
+                month = match.group(2)  # Группа 2 - это месяц
+                _, num_days = calendar.monthrange(year, month)
+                activity_time_all += num_days
+
         # print(file_historys)
     else:
         for i in range(period_months):
@@ -91,6 +104,9 @@ def get_top_list(bot, message, period_months=1, all=False, top_n=10, all_time=Fa
             file_history = f"./data/{type}{message_json['chat']['id']}/{file_name}.json"
             if os.path.exists(file_history):
                 file_historys.append(file_history)
+
+                _, num_days = calendar.monthrange(year, month)
+                activity_time_all += num_days
 
     history = {}
     for file_history in file_historys:
@@ -170,7 +186,15 @@ def get_top_statistics(bot, message, period_months=1, all_time=False):
 
         date_loc = datetime.datetime.strptime(filename.replace('.json',''), '%Y-%m')
         date_loc_text = date_loc.strftime("%Y %b")
-        text += f"*{date_loc_text}:*\n"
+
+        _, num_days = calendar.monthrange(date_loc.year, date_loc.month)
+
+        sum_top = 0
+        for k,v in info_history['top'].items():
+            sum_top += v
+
+        text += f"*{date_loc_text}* win rate: {sum_top}/{num_days} ({int(sum_top/num_days*100)} [%]):*\n"
+
 
         for i, win in enumerate(info_history['win']):
             name = get_name(info, str(win['id']))
