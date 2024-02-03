@@ -110,9 +110,10 @@ def get_top_list(bot, message, period_months=1, all=False, top_n=10, all_time=Fa
 
     history = {}
 
-    if period_months == 1:
-        current_date = datetime.datetime.now()
-        all_days_in_time = current_date.day
+    current_date = datetime.datetime.now()
+    _, num_days = calendar.monthrange(current_date.year, current_date.month)
+    all_days_in_time_now = activity_time_all + current_date.day - num_days
+
 
     sum_top = 0
     for file_history in file_historys:
@@ -124,7 +125,7 @@ def get_top_list(bot, message, period_months=1, all=False, top_n=10, all_time=Fa
                 history[k] = 0
             history[k] += v
             sum_top += v
-    lost_days = all_days_in_time - sum_top
+    lost_days = all_days_in_time_now - sum_top
 
     if len(history) < 1:
         text =  f"За выбранный период нет статистики."
