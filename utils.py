@@ -110,6 +110,10 @@ def get_top_list(bot, message, period_months=1, all=False, top_n=10, all_time=Fa
 
     history = {}
 
+    if period_months == 1:
+        current_date = datetime.now()
+        all_days_in_time = current_date.day
+
     sum_top = 0
     for file_history in file_historys:
         info_history = load(file=file_history)
@@ -120,6 +124,7 @@ def get_top_list(bot, message, period_months=1, all=False, top_n=10, all_time=Fa
                 history[k] = 0
             history[k] += v
             sum_top += v
+    lost_days = all_days_in_time - sum_top
 
     if len(history) < 1:
         text =  f"За выбранный период нет статистики."
@@ -147,7 +152,7 @@ def get_top_list(bot, message, period_months=1, all=False, top_n=10, all_time=Fa
         else:
             break
     total = len(sorted_tuples)
-    text =  f"Рейтинг ({f'top {i_sum}' if not all else 'all'}{f', win rate {sum_top}/{activity_time_all}' if period_months == 1 else ''}{since_text}):\n\n{text}\nВсего победителей -- {total}"
+    text =  f"Рейтинг ({f'top {i_sum}' if not all else 'all'}{f', win rate: {sum_top}/{activity_time_all}, lost days in month: {lost_days}' if period_months == 1 else ''}{since_text}):\n\n{text}\nВсего победителей -- {total}"
     bot.send_message(message_json['chat']['id'], text=text, parse_mode='markdown',
                      disable_notification=DISABLE_NOTIFICATION)
 
