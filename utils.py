@@ -89,8 +89,8 @@ def get_top_list(bot, message, period_months=1, all=False, top_n=10, all_time=Fa
 
             match = re.search(r'(\d{4})-(\d{2})\.json', filename)
             if match:
-                year = match.group(1)  # Группа 1 - это год
-                month = match.group(2)  # Группа 2 - это месяц
+                year = int(match.group(1))  # Группа 1 - это год
+                month = int(match.group(2))  # Группа 2 - это месяц
                 _, num_days = calendar.monthrange(year, month)
                 activity_time_all += num_days
 
