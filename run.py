@@ -245,7 +245,7 @@ def send_topchel_g(message):
 
 
             try:
-                text = f"[INFO][{message_json['chat']['type']}][`{message_json['chat']['id']}`][*{message_json['chat']['title']}*] {name} (id: `{id}`)"
+                text = f"INFO -- *{message_json['chat']['title']}* ({message_json['chat']['type']} `{message_json['chat']['id']}`) -- win {name} (id: `{id}`)"
                 bot.send_message(-1001717789783, text=text, parse_mode='markdown',
                                        disable_notification=DISABLE_NOTIFICATION)
                 time.sleep(1)
