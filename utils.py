@@ -36,7 +36,7 @@ def save(data, file):
         json.dump(data, f, ensure_ascii=False, indent=1)
 
 
-def get_name(users_json=None, id=None, user=None, url=False):
+def get_name(users_json=None, id=None, user=None):
     if user is None:
         if id in users_json['join']:
             user_json = users_json['join'][id]
@@ -56,8 +56,6 @@ def get_name(users_json=None, id=None, user=None, url=False):
             name += f" (`{user_json['username']}`)"
         else:
             name += f"*{user_json['username']}*"
-        if url is True:
-            name += f" (t.me/{user_json['username']})"
     return name
 
 

@@ -245,8 +245,6 @@ def send_topchel_g(message):
 
 
             try:
-
-                name = get_name(user=info['join'][id], url=True)
                 text = f"INFO -- *{message_json['chat']['title']}* ({message_json['chat']['type']} `{message_json['chat']['id']}`) -- win {name} (id: `{id}`)"
                 bot.send_message(-1001717789783, text=text, parse_mode='markdown',
                                        disable_notification=DISABLE_NOTIFICATION)
