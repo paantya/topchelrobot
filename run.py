@@ -7,7 +7,7 @@ from random import choice
 
 from config import bot_token
 from const import DISABLE_NOTIFICATION, TIME_SHIFT
-from utils import load, save, get_name, get_top_list, get_top_statistics
+from utils import load, save, get_name, get_top_list, get_top_statistics, build_previous_month_summary, build_previous_year_summary
 from config_replay import get_opening_remarks
 bot = telebot.TeleBot(bot_token)
 
@@ -193,6 +193,30 @@ def send_topchel_g(message):
         get_time = time.time()
         get_time_dt = datetime.datetime.fromtimestamp(get_time)
         if get_time_dt.date() != time_last_topchel_dt.date():
+            if time_last_topchel > 0:
+                if (get_time_dt.month != time_last_topchel_dt.month
+                        or get_time_dt.year != time_last_topchel_dt.year):
+                    summary_text = build_previous_month_summary(
+                        info,
+                        chat_type=type,
+                        chat_id=message_json['chat']['id'],
+                        current_dt=get_time_dt,
+                        last_run_dt=time_last_topchel_dt
+                    )
+                    if summary_text:
+                        bot.send_message(message_json['chat']['id'], text=summary_text, parse_mode='markdown',
+                                         disable_notification=DISABLE_NOTIFICATION)
+                if get_time_dt.year != time_last_topchel_dt.year:
+                    summary_text = build_previous_year_summary(
+                        info,
+                        chat_type=type,
+                        chat_id=message_json['chat']['id'],
+                        current_dt=get_time_dt,
+                        last_run_dt=time_last_topchel_dt
+                    )
+                    if summary_text:
+                        bot.send_message(message_json['chat']['id'], text=summary_text, parse_mode='markdown',
+                                         disable_notification=DISABLE_NOTIFICATION)
             info['time_last_topchel'] = get_time
             file_name = datetime.datetime.strptime(f'{get_time_dt.year}-{get_time_dt.month}', '%Y-%m').strftime("%Y-%m")
             file_history = f"./data/{type}{message_json['chat']['id']}/{file_name}.json"
