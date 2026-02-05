@@ -223,3 +223,142 @@ def get_top_statistics(bot, message, period_months=1, all_time=False):
     bot.send_message(message_json['chat']['id'], text=text, parse_mode='markdown',
                      disable_notification=DISABLE_NOTIFICATION)
     return text
+
+
+def build_previous_month_summary(info, chat_type, chat_id, current_dt, last_run_dt):
+    def format_name(user_id):
+        user = {"first_name": "no_name"}
+        if user_id in info.get('detach', {}):
+            user = info['detach'][user_id]
+        if user_id in info.get('join', {}):
+            user = info['join'][user_id]
+        return get_name(user=user)
+
+    summaries = []
+    start_year = last_run_dt.year
+    start_month = last_run_dt.month
+    end_year = current_dt.year
+    end_month = current_dt.month
+
+    total_months = (end_year - start_year) * 12 + (end_month - start_month)
+    for offset in range(total_months):
+        year = start_year + (start_month - 1 + offset) // 12
+        month = (start_month - 1 + offset) % 12 + 1
+        file_name = datetime.datetime.strptime(f'{year}-{month}', '%Y-%m').strftime("%Y-%m")
+        file_history = f"./data/{chat_type}{chat_id}/{file_name}.json"
+        if not os.path.exists(file_history):
+            continue
+
+        info_history = load(file=file_history)
+        if 'top' not in info_history or len(info_history['top']) < 1:
+            continue
+
+        sorted_tuples = sorted(info_history['top'].items(), key=lambda item: item[1], reverse=True)
+        top_score = sorted_tuples[0][1]
+        winners = [item for item in sorted_tuples if item[1] == top_score]
+
+        rankings = []
+        place = 0
+        previous_score = None
+        for user_id, score in sorted_tuples:
+            if score != previous_score:
+                place += 1
+                previous_score = score
+            rankings.append((place, user_id, score))
+
+        top_entries = [entry for entry in rankings if entry[0] <= 3]
+
+        month_title = f"{year:0>4}-{month:0>2}"
+        winner_label = "победителя месяца" if len(winners) == 1 else "победителей месяца"
+        text = f"Статистика за {month_title}:\n"
+        text += f"Поздравляем {winner_label}:\n"
+        for winner_id, score in winners:
+            name = format_name(winner_id)
+            text += f"- {name} — `{score}`\n"
+
+        text += "\nТоп-3 по очкам:\n"
+        for place, user_id, score in top_entries:
+            name = format_name(user_id)
+            text += f"`{place: >2}.` {name} — `{score}`\n"
+
+        summaries.append(text)
+
+    if not summaries:
+        return None
+    return "\n\n".join(summaries)
+
+
+def build_previous_year_summary(info, chat_type, chat_id, current_dt, last_run_dt):
+    def format_name(user_id):
+        user = {"first_name": "no_name"}
+        if user_id in info.get('detach', {}):
+            user = info['detach'][user_id]
+        if user_id in info.get('join', {}):
+            user = info['join'][user_id]
+        return get_name(user=user)
+
+    summaries = []
+    for year in range(last_run_dt.year, current_dt.year):
+        if year == current_dt.year:
+            continue
+
+        history = {}
+        data_dir = f"./data/{chat_type}{chat_id}/"
+        if not os.path.isdir(data_dir):
+            continue
+
+        for filename in os.listdir(data_dir):
+            if filename == 'info.json':
+                continue
+            match = re.search(r'(\d{4})-(\d{2})\.json', filename)
+            if not match or int(match.group(1)) != year:
+                continue
+            file_history = f"{data_dir}{filename}"
+            info_history = load(file=file_history)
+            if 'top' not in info_history:
+                continue
+            for k, v in info_history['top'].items():
+                history[k] = history.get(k, 0) + v
+
+        if not history:
+            continue
+
+        sorted_tuples = sorted(history.items(), key=lambda item: item[1], reverse=True)
+        top_score = sorted_tuples[0][1]
+        winners = [item for item in sorted_tuples if item[1] == top_score]
+
+        rankings = []
+        place = 0
+        previous_score = None
+        for user_id, score in sorted_tuples:
+            if score != previous_score:
+                place += 1
+                previous_score = score
+            rankings.append((place, user_id, score))
+
+        top_entries = [entry for entry in rankings if entry[0] <= 3]
+        other_entries = [entry for entry in rankings if entry[0] > 3]
+
+        winner_label = "победителя года" if len(winners) == 1 else "победителей года"
+        text = f"Статистика за {year} год:\n"
+        text += f"Поздравляем {winner_label}:\n"
+        for winner_id, score in winners:
+            name = format_name(winner_id)
+            text += f"- {name} — `{score}`\n"
+
+        text += "\nТоп-3 по очкам:\n"
+        for place, user_id, score in top_entries:
+            name = format_name(user_id)
+            text += f"`{place: >2}.` {name} — `{score}`\n"
+
+        if other_entries:
+            text += "\nОстальные места:\n"
+            for place, user_id, score in other_entries:
+                name = format_name(user_id)
+                text += f"`{place: >2}.` {name} — `{score}`\n"
+
+        summaries.append(text)
+
+    if not summaries:
+        return None
+    return "\n\n".join(summaries)
