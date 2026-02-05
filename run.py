@@ -7,7 +7,20 @@ from random import choice
 
 from config import bot_token
 from const import DISABLE_NOTIFICATION, TIME_SHIFT
-from utils import load, save, get_name, get_top_list, get_top_statistics, build_previous_month_summary, build_previous_year_summary
+from utils import (
+    load,
+    save,
+    get_name,
+    get_top_list,
+    get_top_statistics,
+    build_previous_month_summary,
+    build_previous_year_summary,
+    build_month_summary,
+    build_year_summary,
+    get_earliest_history_dt,
+    find_nearest_previous_history_month,
+    find_nearest_previous_history_year,
+)
 from config_replay import get_opening_remarks
 bot = telebot.TeleBot(bot_token)
 
@@ -41,6 +54,8 @@ def send_help(message):
 /year (/yearall) -- то же самое что и /rating
 /time (/timeall) -- рейтинг за всё время игры
 /statistics (/statisticsall) -- топ месяца
+/prevmonth (/prevmonthall) -- статистика за прошлый месяц (all — за все прошлые месяцы)
+/prevyear (/prevyearall) -- статистика за прошлый год (all — за все прошлые годы)
 /pidor - запустить розыгрыш пидора
 """
     bot.send_message(message_json['chat']['id'], text=text, parse_mode='markdown',
@@ -55,7 +70,9 @@ def send_help(message):
         'quarter', 'quarterall',
         'year', 'yearall',
         'time', 'timeall',
-        'party'
+        'party',
+        'prevmonth', 'prevmonthall',
+        'prevyear', 'prevyearall'
     ],
     chat_types=['private', 'channel'])
 def send_exit_get_p(message):
@@ -196,23 +213,22 @@ def send_topchel_g(message):
             if time_last_topchel > 0:
                 if (get_time_dt.month != time_last_topchel_dt.month
                         or get_time_dt.year != time_last_topchel_dt.year):
-                    summary_text = build_previous_month_summary(
+                    summary_text = build_month_summary(
                         info,
                         chat_type=type,
                         chat_id=message_json['chat']['id'],
-                        current_dt=get_time_dt,
-                        last_run_dt=time_last_topchel_dt
+                        year=time_last_topchel_dt.year,
+                        month=time_last_topchel_dt.month
                     )
                     if summary_text:
                         bot.send_message(message_json['chat']['id'], text=summary_text, parse_mode='markdown',
                                          disable_notification=DISABLE_NOTIFICATION)
                 if get_time_dt.year != time_last_topchel_dt.year:
-                    summary_text = build_previous_year_summary(
+                    summary_text = build_year_summary(
                         info,
                         chat_type=type,
                         chat_id=message_json['chat']['id'],
-                        current_dt=get_time_dt,
-                        last_run_dt=time_last_topchel_dt
+                        year=time_last_topchel_dt.year
                     )
                     if summary_text:
                         bot.send_message(message_json['chat']['id'], text=summary_text, parse_mode='markdown',
@@ -460,6 +476,106 @@ def send_rating_g(message):
 @bot.message_handler(commands=['statisticsall'], chat_types=['group', 'supergroup'])
 def send_rating_g(message):
     get_top_statistics(bot, message, all_time=True)
+
+
+@bot.message_handler(commands=['prevmonth', 'prevmonthall'], chat_types=['group', 'supergroup'])
+def send_prev_month_summary(message):
+    message_json = message.json
+    bot.send_chat_action(message_json['chat']['id'], action='typing', timeout=5)
+
+    chat_type = message_json['chat']['type']
+    chat_id = message_json['chat']['id']
+    file = f"./data/{chat_type}{chat_id}/info.json"
+    info = load(file=file)
+
+    get_time_dt = datetime.datetime.fromtimestamp(time.time())
+    include_all = message_json['text'].lstrip('/').lower().endswith('all')
+    last_run_dt = None
+    if include_all:
+        last_run_dt = get_earliest_history_dt(chat_type=chat_type, chat_id=chat_id)
+    summary_text = None
+    if include_all:
+        summary_text = build_previous_month_summary(
+            info,
+            chat_type=chat_type,
+            chat_id=chat_id,
+            current_dt=get_time_dt,
+            last_run_dt=last_run_dt,
+            include_all=include_all
+        )
+    else:
+        target_year = get_time_dt.year
+        target_month = get_time_dt.month - 1
+        if target_month == 0:
+            target_month = 12
+            target_year -= 1
+        target = find_nearest_previous_history_month(
+            chat_type=chat_type,
+            chat_id=chat_id,
+            year=target_year,
+            month=target_month
+        )
+        if target:
+            summary_text = build_month_summary(
+                info,
+                chat_type=chat_type,
+                chat_id=chat_id,
+                year=target[0],
+                month=target[1]
+            )
+    if summary_text:
+        bot.send_message(message_json['chat']['id'], text=summary_text, parse_mode='markdown',
+                         disable_notification=DISABLE_NOTIFICATION)
+    else:
+        bot.send_message(message_json['chat']['id'], text="За выбранный период нет статистики.",
+                         parse_mode='markdown', disable_notification=DISABLE_NOTIFICATION)
+
+
+@bot.message_handler(commands=['prevyear', 'prevyearall'], chat_types=['group', 'supergroup'])
+def send_prev_year_summary(message):
+    message_json = message.json
+    bot.send_chat_action(message_json['chat']['id'], action='typing', timeout=5)
+
+    chat_type = message_json['chat']['type']
+    chat_id = message_json['chat']['id']
+    file = f"./data/{chat_type}{chat_id}/info.json"
+    info = load(file=file)
+
+    get_time_dt = datetime.datetime.fromtimestamp(time.time())
+    include_all = message_json['text'].lstrip('/').lower().endswith('all')
+    last_run_dt = None
+    if include_all:
+        last_run_dt = get_earliest_history_dt(chat_type=chat_type, chat_id=chat_id)
+    summary_text = None
+    if include_all:
+        summary_text = build_previous_year_summary(
+            info,
+            chat_type=chat_type,
+            chat_id=chat_id,
+            current_dt=get_time_dt,
+            last_run_dt=last_run_dt,
+            include_all=include_all
+        )
+    else:
+        target_year = get_time_dt.year - 1
+        target_year = find_nearest_previous_history_year(
+            chat_type=chat_type,
+            chat_id=chat_id,
+            year=target_year
+        )
+        if target_year:
+            summary_text = build_year_summary(
+                info,
+                chat_type=chat_type,
+                chat_id=chat_id,
+                year=target_year
+            )
+    if summary_text:
+        bot.send_message(message_json['chat']['id'], text=summary_text, parse_mode='markdown',
+                         disable_notification=DISABLE_NOTIFICATION)
+    else:
+        bot.send_message(message_json['chat']['id'], text="За выбранный период нет статистики.",
+                         parse_mode='markdown', disable_notification=DISABLE_NOTIFICATION)
 
 
 
