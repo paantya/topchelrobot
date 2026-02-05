@@ -225,7 +225,27 @@ def get_top_statistics(bot, message, period_months=1, all_time=False):
     return text
 
 
-def build_previous_month_summary(info, chat_type, chat_id, current_dt, last_run_dt):
+def get_earliest_history_dt(chat_type, chat_id):
+    data_dir = f"./data/{chat_type}{chat_id}/"
+    if not os.path.isdir(data_dir):
+        return None
+
+    earliest = None
+    for filename in os.listdir(data_dir):
+        match = re.search(r'(\d{4})-(\d{2})\.json', filename)
+        if not match:
+            continue
+        year = int(match.group(1))
+        month = int(match.group(2))
+        if earliest is None or (year, month) < earliest:
+            earliest = (year, month)
+
+    if earliest is None:
+        return None
+    return datetime.datetime(year=earliest[0], month=earliest[1], day=1)
+
+
+def build_previous_month_summary(info, chat_type, chat_id, current_dt, last_run_dt=None, include_all=False):
     def format_name(user_id):
         user = {"first_name": "no_name"}
         if user_id in info.get('detach', {}):
@@ -235,13 +255,29 @@ def build_previous_month_summary(info, chat_type, chat_id, current_dt, last_run_
         return get_name(user=user)
 
     summaries = []
-    start_year = last_run_dt.year
-    start_month = last_run_dt.month
-    end_year = current_dt.year
-    end_month = current_dt.month
+    if include_all:
+        if last_run_dt is None:
+            return None
+        start_year = last_run_dt.year
+        start_month = last_run_dt.month
+        end_year = current_dt.year
+        end_month = current_dt.month
 
-    total_months = (end_year - start_year) * 12 + (end_month - start_month)
-    for offset in range(total_months):
+        total_months = (end_year - start_year) * 12 + (end_month - start_month)
+        offsets = range(total_months)
+    else:
+        year = current_dt.year
+        month = current_dt.month - 1
+        if month == 0:
+            month = 12
+            year -= 1
+        if year < 1:
+            return None
+        start_year = year
+        start_month = month
+        offsets = range(1)
+
+    for offset in offsets:
         year = start_year + (start_month - 1 + offset) // 12
         month = (start_month - 1 + offset) % 12 + 1
         file_name = datetime.datetime.strptime(f'{year}-{month}', '%Y-%m').strftime("%Y-%m")
@@ -288,7 +324,7 @@ def build_previous_month_summary(info, chat_type, chat_id, current_dt, last_run_
     return "\n\n".join(summaries)
 
 
-def build_previous_year_summary(info, chat_type, chat_id, current_dt, last_run_dt):
+def build_previous_year_summary(info, chat_type, chat_id, current_dt, last_run_dt=None, include_all=False):
     def format_name(user_id):
         user = {"first_name": "no_name"}
         if user_id in info.get('detach', {}):
@@ -298,9 +334,17 @@ def build_previous_year_summary(info, chat_type, chat_id, current_dt, last_run_d
         return get_name(user=user)
 
     summaries = []
-    for year in range(last_run_dt.year, current_dt.year):
-        if year == current_dt.year:
-            continue
+    if include_all:
+        if last_run_dt is None:
+            return None
+        years = list(range(last_run_dt.year, current_dt.year))
+    else:
+        year = current_dt.year - 1
+        if year < 1:
+            return None
+        years = [year]
+
+    for year in years:
 
         history = {}
         data_dir = f"./data/{chat_type}{chat_id}/"
