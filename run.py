@@ -1,4 +1,6 @@
 import random
+import shutil
+import os
 
 import telebot
 import time, datetime
@@ -6,7 +8,7 @@ from random import choice
 
 
 from config import bot_token
-from const import DISABLE_NOTIFICATION, TIME_SHIFT
+from const import DISABLE_NOTIFICATION, TIME_SHIFT, LOG_CHAT_ID
 from utils import (
     load,
     save,
@@ -53,6 +55,7 @@ def send_help(message):
 /prevmonth (/prevmonthall) -- статистика за прошлый месяц (all — за все прошлые месяцы)
 /prevyear (/prevyearall) -- статистика за прошлый год (all — за все прошлые годы)
 /pidor - запустить розыгрыш пидора
+/backup - сделать бэкап (только для разработчиков бота)
 """
     bot.send_message(message_json['chat']['id'], text=text, parse_mode='markdown',
                      disable_notification=DISABLE_NOTIFICATION)
@@ -75,6 +78,18 @@ def send_exit_get_p(message):
     text = "Эта команда для чатов, добавьте бота в группу и вызовите её повторно."
     bot.reply_to(message, text,
                  disable_notification=DISABLE_NOTIFICATION)
+
+
+@bot.message_handler(commands=['backup'])
+def send_backup(message):
+    message_json = message.json
+    if message_json['chat']['id'] == LOG_CHAT_ID:
+        bot.send_chat_action(LOG_CHAT_ID, action='upload_document', timeout=20)
+        file_name = f"backup_{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
+        shutil.make_archive(file_name, 'zip', 'data')
+        with open(f"{file_name}.zip", 'rb') as f:
+            bot.send_document(LOG_CHAT_ID, f, disable_notification=DISABLE_NOTIFICATION)
+        os.remove(f"{file_name}.zip")
 
 
 @bot.message_handler(commands=['rules'])
@@ -283,7 +298,7 @@ def send_topchel_g(message):
 
             try:
                 text = f"INFO -- *{message_json['chat']['title']}* ({message_json['chat']['type']} `{message_json['chat']['id']}`) -- win {name} (id: `{id}`)"
-                bot.send_message(-1001717789783, text=text, parse_mode='markdown',
+                bot.send_message(LOG_CHAT_ID, text=text, parse_mode='markdown',
                                        disable_notification=DISABLE_NOTIFICATION)
                 time.sleep(1)
             except:
