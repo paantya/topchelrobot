@@ -1,0 +1,13 @@
+AGENTS.md
+CLAUDE.md
+.agent/
+.claude/
+.cloud/
+.codex/
+.idea/
+__pycache__/
+*.py[cod]
+notebook/*.json
+notebook/*.csv
+notebook/log/
+data/supergroup-*/
